@@ -1,0 +1,278 @@
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+
+export default function BlogDetail() {
+  const { slug } = useParams(); // blog _id
+  const [blog, setBlog] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  const [commentText, setCommentText] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const token = localStorage.getItem("token");
+
+  /* ================= FETCH BLOG ================= */
+  const fetchBlog = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}`
+      );
+      const data = await res.json();
+      setBlog(data);
+    } catch (err) {
+      console.error("Failed to fetch blog");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlog();
+  }, [slug]);
+
+  /* ================= READING PROGRESS ================= */
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled =
+        (window.scrollY /
+          (document.documentElement.scrollHeight - window.innerHeight)) *
+        100;
+      setProgress(scrolled);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /* ================= LIKE BLOG ================= */
+  const handleLike = async () => {
+    if (!token) {
+      alert("Please login to like this blog");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}/like`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchBlog(); // refresh
+    } catch (err) {
+      console.error("Like failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ================= ADD COMMENT ================= */
+  const handleComment = async (e) => {
+    e.preventDefault();
+
+    if (!token) {
+      alert("Please login to comment");
+      return;
+    }
+
+    if (!commentText.trim()) return;
+
+    try {
+      setActionLoading(true);
+      await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}/comment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text: commentText }),
+        }
+      );
+
+      setCommentText("");
+      fetchBlog();
+    } catch (err) {
+      console.error("Comment failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ================= STATES ================= */
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
+        Loading blog...
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
+        Blog not found
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[#020617] text-slate-200 min-h-screen relative">
+
+      {/* Reading Progress */}
+      <div className="fixed top-0 left-0 w-full h-[3px] z-[100]">
+        <div
+          className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* HERO */}
+      <section className="pt-32 md:pt-40 pb-12 px-6 border-b border-slate-800">
+        <div className="max-w-4xl mx-auto">
+          <Link
+            to="/blog"
+            className="text-cyan-400 text-xs uppercase tracking-widest"
+          >
+            ← Back to Blog
+          </Link>
+
+          <h1 className="mt-6 text-3xl md:text-6xl font-black text-white">
+            {blog.title}
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-slate-400">
+            <span className="text-white font-semibold">
+              {blog.author?.name || "Unknown"}
+            </span>
+            <span>{new Date(blog.createdAt).toDateString()}</span>
+
+            {/* LIKE BUTTON */}
+            <button
+              onClick={handleLike}
+              disabled={actionLoading}
+              className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition"
+            >
+              ♥ {blog.likes?.length || 0}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* IMAGE */}
+      {blog.image && (
+        <section className="py-12 px-6">
+          <div className="max-w-5xl mx-auto">
+            <img
+              src={blog.image}
+              alt={blog.title}
+              className="w-full max-h-[520px] object-cover rounded-2xl border border-cyan-500/20"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* CONTENT */}
+      <main className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <aside className="lg:col-span-3 hidden lg:block sticky top-40">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+            <div className="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center text-black font-black mb-4">
+              {blog.author?.name?.[0] || "U"}
+            </div>
+            <h4 className="text-white font-bold">
+              {blog.author?.name || "Unknown"}
+            </h4>
+            <p className="text-xs text-slate-400 mt-2">
+              CSC NITJ Contributor
+            </p>
+          </div>
+        </aside>
+
+        <article className="lg:col-span-9 prose prose-invert prose-cyan max-w-none">
+          {blog.content
+            .split("\n")
+            .filter(Boolean)
+            .map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+        </article>
+      </main>
+
+      {/* COMMENTS */}
+      <section className="max-w-4xl mx-auto px-6 pb-24">
+        <h3 className="text-xl font-black text-white mb-8">
+          Comments ({blog.comments?.length || 0})
+        </h3>
+
+        {/* ADD COMMENT */}
+        <form onSubmit={handleComment} className="mb-10">
+          <textarea
+            rows="3"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder={
+              token
+                ? "Write your comment..."
+                : "Login to write a comment"
+            }
+            disabled={!token}
+            className="
+              w-full p-4 rounded-lg
+              bg-slate-900 border border-slate-700
+              text-slate-200
+              focus:border-cyan-400 outline-none
+            "
+          />
+          <button
+            type="submit"
+            disabled={!token || actionLoading}
+            className="
+              mt-3 px-6 py-2 rounded-lg
+              bg-cyan-500 text-black
+              text-xs font-black uppercase tracking-widest
+              hover:bg-cyan-400 transition
+              disabled:opacity-50
+            "
+          >
+            Post Comment
+          </button>
+        </form>
+
+        {/* COMMENT LIST */}
+        <div className="space-y-6">
+          {blog.comments?.map((c) => (
+            <div
+              key={c._id}
+              className="bg-slate-900/60 border border-slate-800 rounded-xl p-5"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
+                  {c.user?.name?.[0] || "U"}
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">
+                    {c.user?.name || "CSC Member"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(c.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-slate-300 text-sm">{c.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="text-center py-12 text-xs text-slate-500 uppercase tracking-widest">
+        Awareness is the first line of cyber defense • CSC NITJ
+      </footer>
+    </div>
+  );
+}

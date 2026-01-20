@@ -1,56 +1,167 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+
+  // backend base url (env based)
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // basic frontend checks
+    if (name.trim().length < 2) {
+      setError("Name must be at least 2 characters");
+      return;
+    }
+
+    if (!email.trim().endsWith("@nitj.ac.in")) {
+      setError("Email must end with @nitj.ac.in");
+      return;
+    }
+
+    if (password.length < 4) {
+      setError("Password must be at least 4 characters");
+      return;
+    }
+
     try {
-      await axios.post("http://localhost:5000/api/auth/register", { name, email, password });
+      setLoading(true);
+
+      await axios.post(`${API_BASE_URL}/api/auth/register`, {
+        name,
+        email,
+        password,
+      });
+
+      // registration successful → login page
       navigate("/login");
     } catch (err) {
-      alert("Registration failed");
-      console.log(err);
+      setError(
+        err.response?.data?.message || "Registration failed"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-[80vh]">
-      <form onSubmit={handleRegister} className="bg-primary p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-accent mb-6 text-center">Register</h1>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-3 mb-4 rounded bg-gray-800 text-white"
-          required
+    <div className="min-h-screen flex items-center justify-center bg-[#00050a] px-4">
+      <div className="relative w-full max-w-md">
+
+        {/* glow */}
+        <div
+          className="absolute -inset-1 rounded-2xl 
+                     bg-gradient-to-r from-cyan-500/40 to-blue-500/40 
+                     blur-lg opacity-40"
         />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 rounded bg-gray-800 text-white"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 rounded bg-gray-800 text-white"
-          required
-        />
-        <button type="submit" className="w-full bg-secondary text-primary p-3 rounded font-bold hover:bg-accent transition">
-          Register
-        </button>
-      </form>
+
+        <form
+          onSubmit={handleRegister}
+          className="relative bg-[#0a0f1d] border border-cyan-500/30 
+                     p-10 rounded-2xl 
+                     shadow-[0_0_60px_rgba(0,209,255,0.15)]"
+        >
+          {/* heading */}
+          <h1 className="text-3xl font-black italic uppercase tracking-tight text-center text-white">
+            Terminal <span className="text-cyan-400">Register</span>
+          </h1>
+          <p className="text-gray-500 text-[10px] font-bold tracking-[0.35em] uppercase text-center mt-2 mb-10">
+            New User Initialization
+          </p>
+
+          {/* name */}
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-black/50 border border-white/10 rounded-lg p-4 mb-4
+                       text-white text-xs font-mono
+                       focus:border-cyan-500/60 outline-none transition-all"
+            required
+          />
+
+          {/* email */}
+          <input
+            type="email"
+            placeholder="student@nitj.ac.in"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-black/50 border border-white/10 rounded-lg p-4 mb-4
+                       text-white text-xs font-mono
+                       focus:border-cyan-500/60 outline-none transition-all"
+            required
+          />
+
+          {/* password */}
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full bg-black/50 border border-white/10 rounded-lg p-4 mb-4
+                       text-white text-xs font-mono
+                       focus:border-cyan-500/60 outline-none transition-all"
+            required
+          />
+
+          {/* error */}
+          {error && (
+            <div
+              className="text-red-500 text-[9px] font-bold tracking-widest uppercase
+                         bg-red-500/5 p-2 border-l-2 border-red-500 mb-4"
+            >
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-cyan-500 text-black font-black py-4 rounded-lg
+                       text-xs tracking-[0.25em] uppercase
+                       hover:bg-cyan-400 transition-all
+                       shadow-[0_0_25px_rgba(34,211,238,0.3)]
+                       disabled:opacity-60"
+          >
+            {loading ? "Creating..." : "Create Account"}
+          </button>
+
+          {/* divider */}
+          <div className="flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-gray-500 text-[9px] font-bold tracking-[0.3em] uppercase">
+              OR
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* login link */}
+          <p className="text-center text-gray-400 text-xs">
+            Already have an account?
+          </p>
+
+          <Link
+            to="/login"
+            className="block text-center mt-3 text-cyan-400
+                       text-xs font-black tracking-[0.25em] uppercase
+                       hover:text-cyan-300 transition"
+          >
+            Login Instead
+          </Link>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,87 +1,98 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.png";
 
-function Navbar() {
+export default function Navbar({ isLoggedIn }) {
+  const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Team", path: "/teams" },
-    { name: "Blog", path: "/blog" },
-    { name: "Dashboard", path: "/dashboard" },
-  ];
+  // active link highlight (subtle, no design change)
+  const isActive = (path) =>
+    location.pathname === path
+      ? "text-white"
+      : "text-slate-400 hover:text-white";
 
   return (
-    <nav
-      className="
-        sticky top-0 z-50
-        bg-[#060b24]/95
-        backdrop-blur-md
-        border-b border-cyan-400/20
-        shadow-[0_0_25px_rgba(23,234,236,0.15)]
-      "
-    >
-      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+    <nav className="fixed top-0 w-full z-50 bg-[#020617]/80 backdrop-blur border-b border-slate-800 px-6 py-4">
+      <div className="flex justify-between items-center">
 
-        {/* Logo + Name */}
-        <Link to="/" className="flex items-center gap-4 group">
-          <div className="relative">
-            <img
-              src={logo}
-              alt="CSC NITJ Logo"
-              className="
-                h-12 w-12 object-contain
-                drop-shadow-[0_0_10px_rgba(23,234,236,0.8)]
-                group-hover:scale-110 transition
-              "
-            />
-            {/* glow ring */}
-            <div className="absolute inset-0 rounded-full blur-xl bg-cyan-400/20 opacity-0 group-hover:opacity-100 transition"></div>
-          </div>
-
-          <span
-            className="
-              text-xl md:text-2xl font-bold tracking-widest
-              text-[#17EAEC]
-              drop-shadow-[0_0_10px_rgba(23,234,236,0.8)]
-            "
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            CSC NITJ
-          </span>
+        {/* Logo */}
+        <Link
+          to="/"
+          className="text-white font-black text-xl italic"
+          onClick={() => setOpen(false)}
+        >
+          CSC<span className="text-cyan-400">NITJ</span>
         </Link>
 
-        {/* Nav Links */}
-        <ul className="flex gap-10">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+        {/* Desktop menu */}
+        <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest">
+          <Link to="/" className={isActive("/")}>Home</Link>
+          <Link to="/about" className={isActive("/about")}>About</Link>
+          <Link to="/team" className={isActive("/team")}>Team</Link>
+          <Link to="/blog" className={isActive("/blog")}>Blog</Link>
 
-            return (
-              <li key={item.name}>
-                <Link
-                  to={item.path}
-                  className={`
-                    relative font-medium tracking-wide transition
-                    ${isActive ? "text-[#17EAEC]" : "text-gray-300 hover:text-white"}
-                    after:absolute after:left-0 after:-bottom-1
-                    after:h-[2px] after:w-0 after:bg-[#17EAEC]
-                    after:transition-all after:duration-300
-                    hover:after:w-full
-                    ${isActive ? "after:w-full" : ""}
-                  `}
-                >
-                  {item.name}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              className="px-4 py-2 border border-cyan-500 text-cyan-400 rounded hover:bg-cyan-500 hover:text-black transition"
+            >
+              Sign In
+            </Link>
+          ) : (
+            <Link
+              to="/profile"
+              className="w-9 h-9 rounded-full border border-cyan-500 flex items-center justify-center text-cyan-400"
+            >
+              👤
+            </Link>
+          )}
+        </div>
 
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden text-cyan-400 text-2xl"
+          onClick={() => setOpen(!open)}
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
       </div>
+
+      {/* Mobile menu */}
+      {open && (
+        <div className="md:hidden mt-6 flex flex-col gap-6 text-xs font-bold uppercase tracking-widest">
+          <Link to="/" onClick={() => setOpen(false)} className={isActive("/")}>
+            Home
+          </Link>
+          <Link to="/about" onClick={() => setOpen(false)} className={isActive("/about")}>
+            About
+          </Link>
+          <Link to="/team" onClick={() => setOpen(false)} className={isActive("/team")}>
+            Team
+          </Link>
+          <Link to="/blog" onClick={() => setOpen(false)} className={isActive("/blog")}>
+            Blog
+          </Link>
+
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="inline-block w-fit px-4 py-2 border border-cyan-500 text-cyan-400 rounded hover:bg-cyan-500 hover:text-black transition"
+            >
+              Sign In
+            </Link>
+          ) : (
+            <Link
+              to="/profile"
+              onClick={() => setOpen(false)}
+              className="w-9 h-9 rounded-full border border-cyan-500 flex items-center justify-center text-cyan-400"
+            >
+              👤
+            </Link>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
-
-export default Navbar;
