@@ -18,22 +18,18 @@ import Register from "./pages/Register";
 import CreateBlog from "./pages/CreateBlog";
 import BlogDetail from "./pages/BlogDetail";
 function App() {
-  // 🔥 REACTIVE AUTH STATE
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 🔁 Sync with localStorage on refresh
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
 
-  // 🔐 Called after login
   const handleLogin = () => {
     localStorage.setItem("token", "always-logged-in");
     setIsLoggedIn(true);
   };
 
-  // 🔓 Called on logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);

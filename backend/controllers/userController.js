@@ -3,7 +3,6 @@ import Blog from "../models/Blog.js";
 
 export const getProfile = async (req, res) => {
   try {
-    // fetch user without password
     const user = await User.findById(req.user._id).select("-password");
 
     if (!user) {
