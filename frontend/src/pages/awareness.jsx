@@ -222,5 +222,4 @@ const AwarenessPage = () => {
     </div>
   );
 };
-
 export default AwarenessPage;

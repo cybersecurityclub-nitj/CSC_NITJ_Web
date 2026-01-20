@@ -236,5 +236,4 @@ const CompetitionsPage = () => {
     </div>
   );
 };
-
 export default CompetitionsPage;

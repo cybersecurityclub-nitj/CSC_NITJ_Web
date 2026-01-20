@@ -179,12 +179,6 @@ const Home = () => {
     msg: "Guiding students to think critically about cybersecurity challenges and encouraging ethical research-driven exploration."
   },
   {
-    name: "Dr Urvashi Bansal",
-    role: "Faculty Mentor",
-    img: UrvashiImg,
-    msg: "Encouraging collaborative learning and fostering a research-oriented mindset in cybersecurity domains."
-  },
-  {
     name: "Dr Samayveer Singh",
     role: "Faculty Mentor",
     img: SamayImg,
@@ -195,6 +189,12 @@ const Home = () => {
     role: "Faculty Mentor",
     img: KPImg,
     msg: "Motivating students to innovate in secure system design with discipline, precision, and academic rigor."
+  },
+  {
+    name: "Dr Urvashi Bansal",
+    role: "Faculty Mentor",
+    img: UrvashiImg,
+    msg: "Encouraging collaborative learning and fostering a research-oriented mindset in cybersecurity domains."
   }
 ];
 

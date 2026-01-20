@@ -312,5 +312,4 @@ const TeamsPage = () => {
     </div>
   );
 };
-
 export default TeamsPage;
