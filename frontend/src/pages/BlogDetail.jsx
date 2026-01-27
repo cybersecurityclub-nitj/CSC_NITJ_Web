@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
 export default function BlogDetail() {
-  const { slug } = useParams(); // blog _id
+  const { slug } = useParams(); // Blog ID from URL
+
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -12,7 +13,7 @@ export default function BlogDetail() {
 
   const token = localStorage.getItem("token");
 
-  /* ================= FETCH BLOG ================= */
+  // Fetch blog data from backend
   const fetchBlog = async () => {
     try {
       const res = await fetch(
@@ -31,20 +32,22 @@ export default function BlogDetail() {
     fetchBlog();
   }, [slug]);
 
-  /* ================= READING PROGRESS ================= */
+  // Track reading progress while scrolling
   useEffect(() => {
     const handleScroll = () => {
       const scrolled =
         (window.scrollY /
           (document.documentElement.scrollHeight - window.innerHeight)) *
         100;
+
       setProgress(scrolled);
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* ================= LIKE BLOG ================= */
+  // Like / unlike blog
   const handleLike = async () => {
     if (!token) {
       alert("Please login to like this blog");
@@ -53,7 +56,8 @@ export default function BlogDetail() {
 
     try {
       setActionLoading(true);
-      await fetch(
+
+      const res = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}/like`,
         {
           method: "POST",
@@ -62,7 +66,9 @@ export default function BlogDetail() {
           },
         }
       );
-      fetchBlog(); // refresh
+
+      const updatedBlog = await res.json();
+      setBlog(updatedBlog);
     } catch (err) {
       console.error("Like failed");
     } finally {
@@ -70,7 +76,7 @@ export default function BlogDetail() {
     }
   };
 
-  /* ================= ADD COMMENT ================= */
+  // Add new comment
   const handleComment = async (e) => {
     e.preventDefault();
 
@@ -83,6 +89,7 @@ export default function BlogDetail() {
 
     try {
       setActionLoading(true);
+
       await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}/comment`,
         {
@@ -104,7 +111,39 @@ export default function BlogDetail() {
     }
   };
 
-  /* ================= STATES ================= */
+  // Delete comment (author or comment owner only)
+  const handleDeleteComment = async (commentId) => {
+    if (!token) return;
+
+    try {
+      setActionLoading(true);
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/blogs/${slug}/comment/${commentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Delete failed");
+      }
+
+      const updatedBlog = await res.json();
+      setBlog(updatedBlog);
+    } catch (err) {
+      console.error("Delete comment failed:", err.message);
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Loading & error states
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
@@ -121,10 +160,22 @@ export default function BlogDetail() {
     );
   }
 
+  // Decode user ID from JWT (if logged in)
+  let userId = null;
+  if (token) {
+    try {
+      userId = JSON.parse(atob(token.split(".")[1])).id;
+    } catch {
+      userId = null;
+    }
+  }
+
+  const isLiked =
+    userId && blog?.likes?.some((id) => id.toString() === userId);
+
   return (
     <div className="bg-[#020617] text-slate-200 min-h-screen relative">
-
-      {/* Reading Progress */}
+      {/* Top reading progress bar */}
       <div className="fixed top-0 left-0 w-full h-[3px] z-[100]">
         <div
           className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"
@@ -132,7 +183,7 @@ export default function BlogDetail() {
         />
       </div>
 
-      {/* HERO */}
+      {/* Blog header */}
       <section className="pt-32 md:pt-40 pb-12 px-6 border-b border-slate-800">
         <div className="max-w-4xl mx-auto">
           <Link
@@ -150,21 +201,24 @@ export default function BlogDetail() {
             <span className="text-white font-semibold">
               {blog.author?.name || "Unknown"}
             </span>
+
             <span>{new Date(blog.createdAt).toDateString()}</span>
 
-            {/* LIKE BUTTON */}
             <button
               onClick={handleLike}
               disabled={actionLoading}
-              className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition"
+              className={`flex items-center gap-2 transition
+                ${isLiked ? "text-red-400" : "text-cyan-400"}
+                ${actionLoading ? "opacity-50" : ""}
+              `}
             >
-              ♥ {blog.likes?.length || 0}
+              {isLiked ? "♥" : "♡"} {blog.likes?.length || 0}
             </button>
           </div>
         </div>
       </section>
 
-      {/* IMAGE */}
+      {/* Cover image */}
       {blog.image && (
         <section className="py-12 px-6">
           <div className="max-w-5xl mx-auto">
@@ -177,7 +231,7 @@ export default function BlogDetail() {
         </section>
       )}
 
-      {/* CONTENT */}
+      {/* Blog content & author sidebar */}
       <main className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-12 gap-16">
         <aside className="lg:col-span-3 hidden lg:block sticky top-40">
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
@@ -193,80 +247,96 @@ export default function BlogDetail() {
           </div>
         </aside>
 
-        <article className="lg:col-span-9 prose prose-invert prose-cyan max-w-none">
-          {blog.content
-            .split("\n")
-            .filter(Boolean)
-            .map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-        </article>
+        {/* Rendered blog HTML */}
+        <article
+          className="
+            lg:col-span-9
+            prose prose-invert prose-cyan max-w-none
+
+            prose-h1:text-white
+            prose-h2:text-white
+            prose-h3:text-white
+
+            prose-ul:list-disc
+            prose-ol:list-decimal
+            prose-li:marker:text-cyan-400
+
+            prose-code:bg-slate-900
+            prose-code:text-cyan-300
+            prose-code:px-1
+            prose-code:py-0.5
+            prose-code:rounded
+
+            prose-pre:bg-slate-900
+            prose-pre:border
+            prose-pre:border-slate-800
+
+            [&_iframe]:w-full
+            [&_iframe]:aspect-video
+            [&_iframe]:rounded-xl
+            [&_iframe]:border
+            [&_iframe]:border-slate-800
+          "
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+        />
       </main>
 
-      {/* COMMENTS */}
+      {/* Comments section */}
       <section className="max-w-4xl mx-auto px-6 pb-24">
         <h3 className="text-xl font-black text-white mb-8">
           Comments ({blog.comments?.length || 0})
         </h3>
 
-        {/* ADD COMMENT */}
         <form onSubmit={handleComment} className="mb-10">
           <textarea
             rows="3"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder={
-              token
-                ? "Write your comment..."
-                : "Login to write a comment"
+              token ? "Write your comment..." : "Login to write a comment"
             }
             disabled={!token}
-            className="
-              w-full p-4 rounded-lg
-              bg-slate-900 border border-slate-700
-              text-slate-200
-              focus:border-cyan-400 outline-none
-            "
+            className="w-full p-4 rounded-lg bg-slate-900 border border-slate-700"
           />
           <button
             type="submit"
             disabled={!token || actionLoading}
-            className="
-              mt-3 px-6 py-2 rounded-lg
-              bg-cyan-500 text-black
-              text-xs font-black uppercase tracking-widest
-              hover:bg-cyan-400 transition
-              disabled:opacity-50
-            "
+            className="mt-3 px-6 py-2 rounded-lg bg-cyan-500 text-black text-xs font-black uppercase"
           >
             Post Comment
           </button>
         </form>
 
-        {/* COMMENT LIST */}
         <div className="space-y-6">
-          {blog.comments?.map((c) => (
-            <div
-              key={c._id}
-              className="bg-slate-900/60 border border-slate-800 rounded-xl p-5"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
-                  {c.user?.name?.[0] || "U"}
-                </div>
-                <div>
+          {blog.comments?.map((c) => {
+            const canDelete =
+              userId &&
+              (c.user?._id === userId || blog.author?._id === userId);
+
+            return (
+              <div
+                key={c._id}
+                className="bg-slate-900/60 border border-slate-800 rounded-xl p-5"
+              >
+                <div className="flex justify-between mb-2">
                   <p className="text-white font-semibold text-sm">
                     {c.user?.name || "CSC Member"}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    {new Date(c.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              </div>
 
-              <p className="text-slate-300 text-sm">{c.text}</p>
-            </div>
-          ))}
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDeleteComment(c._id)}
+                      className="text-red-400 text-xs"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-slate-300 text-sm">{c.text}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

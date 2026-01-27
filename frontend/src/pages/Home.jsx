@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import {Link} from "react-router-dom";
 import backgroundImage from '../assets/clublogo.png';
 import VikashImg from '../assets/vikash.png'; 
 import KritikaImg from '../assets/kritika.png';
@@ -173,13 +174,13 @@ const Home = () => {
 
   const facultyMentors = [
   {
-    name: "Dr Harsh Kumar Verma",
+    name: "Prof. Harsh Kumar Verma",
     role: "Faculty Mentor",
     img: HarshImg,
     msg: "Guiding students to think critically about cybersecurity challenges and encouraging ethical research-driven exploration."
   },
   {
-    name: "Dr Samayveer Singh",
+    name: "Dr. Samayveer Singh",
     role: "Faculty Mentor",
     img: SamayImg,
     msg: "Focused on building strong technical foundations and promoting responsible use of security tools and practices."
@@ -191,7 +192,7 @@ const Home = () => {
     msg: "Motivating students to innovate in secure system design with discipline, precision, and academic rigor."
   },
   {
-    name: "Dr Urvashi Bansal",
+    name: "Dr. Urvashi Bansal",
     role: "Faculty Mentor",
     img: UrvashiImg,
     msg: "Encouraging collaborative learning and fostering a research-oriented mindset in cybersecurity domains."
@@ -273,12 +274,13 @@ const Home = () => {
             </h1>
             <p className="text-[10px] md:text-sm text-cyan-100 font-bold uppercase tracking-[0.2em] mt-4 opacity-80">Building Cyber Awareness & Ethical Hacking Skills</p>
             <div className="h-32"></div>
-            <MagneticButton 
-              onClick={() => window.location.hash = "#about"} 
-              className="cyber-button-tech px-8 py-3 uppercase text-[11px] tracking-[0.3em]"
-            >
-              Learn More
-            </MagneticButton>
+            <Link to='/about'>
+              <MagneticButton 
+                className="cyber-button-tech px-8 py-3 uppercase text-[11px] tracking-[0.3em]"
+              >
+                Learn More
+              </MagneticButton>
+            </Link>
           </div>
         </div>
       </section>
@@ -317,9 +319,6 @@ const Home = () => {
           <h3 className="text-[#00D1FF] text-xl font-bold tracking-wider">
             {faculty.name}
           </h3>
-          <p className="text-gray-500 uppercase text-[9px] font-bold tracking-[0.4em] mt-2">
-            {faculty.role}
-          </p>
 
           {/* Formal message box */}
           <div className="mt-6 w-full bg-black/60 p-6 rounded-lg text-left 
@@ -371,9 +370,6 @@ const Home = () => {
         <h3 className="text-[#00D1FF] text-2xl font-bold tracking-wider">
           Vikash Kushwah
         </h3>
-        <p className="text-gray-500 uppercase text-[10px] font-bold tracking-[0.4em] mt-2">
-          Founder / Coordinator
-        </p>
 
         {/* Vision box */}
         <div className="mt-6 w-full bg-black/40 p-6 rounded-lg border border-cyan-500/20 font-mono text-left relative overflow-hidden">
@@ -401,9 +397,6 @@ const Home = () => {
         <h3 className="text-[#00D1FF] text-2xl font-bold tracking-wider">
           Kritika Joshi
         </h3>
-        <p className="text-gray-500 uppercase text-[10px] font-bold tracking-[0.4em] mt-2">
-          Founder / Coordinator
-        </p>
 
         {/* Vision box */}
         <div className="mt-6 w-full bg-black/40 p-6 rounded-lg border border-cyan-500/20 font-mono text-left relative overflow-hidden">

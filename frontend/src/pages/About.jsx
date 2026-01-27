@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// --- NEURAL NETWORK BACKGROUND (Unchanged) ---
+// --- NEURAL NETWORK BACKGROUND ---
 const NeuralNetwork = () => {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -71,12 +72,11 @@ const NeuralNetwork = () => {
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
 };
 
-// --- REUSABLE CARD COMPONENT (Updated with Prefix prop) ---
+// --- REUSABLE CARD COMPONENT ---
 const GoalCard = ({ id, title, desc, active, path, prefix = "SEC" }) => {
+  const navigate = useNavigate();
   const handleNavigate = () => {
-    if (active) {
-      window.location.hash = path;
-    }
+    if (active) navigate(path);
   };
 
   return (
@@ -294,7 +294,7 @@ const AboutPage = () => {
             id="001" 
             title="Education" 
             desc="Hands-on exposure through workshops, events, and technical sessions focusing on real-world security projects." 
-            path="/#education" 
+            path="/education" 
             prefix="SEC"
           />
           <GoalCard 
@@ -302,7 +302,7 @@ const AboutPage = () => {
             id="002" 
             title="Awareness" 
             desc="Developing a strong cybersecurity culture and building digital resilience through shared knowledge." 
-            path="/#awareness" 
+            path="/awareness" 
             prefix="SEC"
           />
           <GoalCard 
@@ -310,43 +310,11 @@ const AboutPage = () => {
             id="003" 
             title="Innovation" 
             desc="Encouraging research-driven solutions and ethical hacking practices to defend global digital infrastructures." 
-            path="/#competitions" 
+            path="/competitions" 
             prefix="SEC"
           />
         </div>
       </section>
-
-      {/* 3. OUR EVENTS SECTION (Moved from Home) */}
-      <section id="events" ref={eventsRef} className="relative z-10 pt-16 pb-32 px-6 max-w-7xl mx-auto">
-        <div className={`flex flex-col items-center mb-24 text-center transition-all transform ${
-          eventsHeaderVisible ? 'opacity-100 translate-y-0 duration-1000' : 'opacity-0 -translate-y-5 duration-300'
-        }`}>
-          <h2 className="text-3xl md:text-4xl font-black uppercase tracking-[0.3em] text-white/90">
-            Our <span className="text-cyan-500">Events</span>
-          </h2>
-          <div className="h-1 w-48 md:w-64 bg-cyan-500 mt-6 rounded-full shadow-[0_0_20px_#22d3ee]" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-          <GoalCard 
-            active={visibleEvents[0]} 
-            id="001" 
-            title="Hackathon 2025" 
-            desc="Join us for 24 hours of coding challenges, Capture The Flag (CTF) scenarios, and incredible prizes." 
-            path="#hackathon" 
-            prefix="EVT"
-          />
-          <GoalCard 
-            active={visibleEvents[1]} 
-            id="002" 
-            title="Cyber Workshop" 
-            desc="Hands-on sessions on ethical hacking, penetration testing, and network defense strategies." 
-            path="#workshop" 
-            prefix="EVT"
-          />
-        </div>
-      </section>
-
     </div>
   );
 };

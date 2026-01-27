@@ -31,5 +31,17 @@ export const protect = async (req, res, next) => {
     return res.status(401).json({
       message: "Invalid or expired token",
     });
+    
+  }
+
+};
+export const isAdmin = (req, res, next) => {
+  // Check if req.user exists (set by protect) and if their role is admin
+  if (req.user && req.user.role === "admin") {
+    next(); // User is admin, proceed to the controller
+  } else {
+    res.status(403).json({ 
+      message: "Access denied. Admin privileges required." 
+    });
   }
 };

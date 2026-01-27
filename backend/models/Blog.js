@@ -13,10 +13,22 @@ const blogSchema = new mongoose.Schema(
       required: true,
     },
 
+    category: {
+      type: String,
+      enum: ["Cybersecurity", "Awareness", "Ethical Hacking", "AI & Tech"],
+      required: true,
+    },
+
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
 
     likes: [
@@ -48,9 +60,7 @@ const blogSchema = new mongoose.Schema(
       default: "",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model("Blog", blogSchema);

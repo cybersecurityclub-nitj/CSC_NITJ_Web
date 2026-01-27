@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // --- NEURAL NETWORK BACKGROUND (Unchanged) ---
 const NeuralNetwork = () => {
@@ -77,6 +78,7 @@ const CompetitionsPage = () => {
   const [isFadingGlobal, setIsFadingGlobal] = useState(false);
   const [isFadingInternal, setIsFadingInternal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
 
   const globalComps = [
     { title: "Shakti CTF", id: "IN_01", icon: "🇮🇳", status: "India - Online", content: "India's premier women-only CTF focusing on inclusivity and high-level offensive security challenges." },
@@ -128,18 +130,7 @@ const CompetitionsPage = () => {
   }, [globalComps.length, internalEvents.length]);
 
   const handleReturn = (e) => {
-    e.preventDefault();
-    window.location.hash = '#about';
-    
-    setTimeout(() => {
-      // Targets the specific grid ID on your hub/about page
-      const target = document.getElementById('about-grid') || 
-                     document.getElementById('about');
-                     
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
+    navigate('/about');
   };
 
   return (

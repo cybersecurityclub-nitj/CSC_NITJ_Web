@@ -11,7 +11,6 @@ function Register() {
 
   const navigate = useNavigate();
 
-  // backend base url (env based)
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleRegister = async (e) => {

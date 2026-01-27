@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-function Login() {
+function Login(props) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -9,9 +9,10 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
+  setLoading(true);
 
   try {
     const res = await fetch(
@@ -23,28 +24,33 @@ function Login() {
       }
     );
 
-    const text = await res.text();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Login failed");
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Server did not return valid JSON");
-    }
-
-    if (!res.ok) {
-      throw new Error(data.message || "Login failed");
-    }
-
+    // 🔐 ONLY REAL JWT
+    localStorage.clear(); // 💣 kill old garbage
     localStorage.setItem("token", data.token);
-    localStorage.setItem("userName", data.name);
-    localStorage.setItem("userEmail", data.email);
+    localStorage.setItem("role", data.role || "user");
 
-    navigate("/");
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      })
+    );
+
+    navigate(data.role === "admin" ? "/admin" : "/profile");
   } catch (err) {
     setError(err.message);
+  } finally {
+    setLoading(false);
   }
 };
+
+
 
 
   return (
